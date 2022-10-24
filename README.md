@@ -1,5 +1,5 @@
 # couterMO
-Parser of court cases of Moscow region in all 53 courts!
+Parser of court cases of the Moscow region in all 53 courts!
 
 ## installation
 ```golang
