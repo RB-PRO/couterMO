@@ -36,7 +36,7 @@ func main() {
 	dt := time.Now()
 	datedo := dt.Format("02.01.2006")
 	dateot := dt.AddDate(0, -1, 0).Format("02.01.2006")
-	//dateot = "19.09.2021"
+	//dateot = "15.11.2022"
 	outputfilename := "Суды МО от " + dateot + " до " + datedo + ".xlsx"
 	//fmt.Println(dateot, datedo)
 	//var couters couterMO_data
@@ -105,32 +105,52 @@ func main() {
 		fmt.Println(err)
 	}
 }
+
+// Получить ячейку
+func cells(y, x int) string {
+	strCell, _ := excelize.CoordinatesToCellName(x, y)
+	return strCell
+}
+
+// Создать шапку колонок
 func make_Title(f *excelize.File) {
-	f.SetCellValue("main", "A1", "Номер дела")
-	f.SetCellValue("main", "B1", "Ссылка на дело")
-	f.SetCellValue("main", "C1", "Дата поступления")
-	f.SetCellValue("main", "D1", "Категория")
-	f.SetCellValue("main", "E1", "Истец")
-	f.SetCellValue("main", "F1", "Ответчик")
-	f.SetCellValue("main", "G1", "Судья")
-	f.SetCellValue("main", "H1", "Дата решения")
-	f.SetCellValue("main", "I1", "Решение")
-	f.SetCellValue("main", "J1", "Дата вступления в законную силу")
-	f.SetCellValue("main", "K1", "Судебные акты")
+	f.SetCellValue("main", cells(1, 1), "Номер дела")
+	f.SetCellValue("main", cells(1, 2), "Ссылка на дело")
+	f.SetCellValue("main", cells(1, 3), "Дата поступления")
+	f.SetCellValue("main", cells(1, 4), "Категория")
+	f.SetCellValue("main", cells(1, 5), "Истец")
+	f.SetCellValue("main", cells(1, 6), "Судья Арбитражного суда")
+	f.SetCellValue("main", cells(1, 7), "Суд (наименование суда)")
+	f.SetCellValue("main", cells(1, 8), "Название компании")
+	f.SetCellValue("main", cells(1, 9), "ИНН")
+	f.SetCellValue("main", cells(1, 10), "link")
+	f.SetCellValue("main", cells(1, 11), "Судебные акты")
+	f.SetCellValue("main", cells(1, 12), "Дата решения")
+	f.SetCellValue("main", cells(1, 13), "Дата вступления в законную силу")
+	f.SetCellValue("main", cells(1, 14), "Решение")
+	f.SetCellValue("main", cells(1, 15), "Источник")
+	f.SetCellValue("main", cells(1, 16), "Доступен")
 }
 func saveTypeOnXLSX(f *excelize.File, cou couterMO_data) {
 	//for index := range cou {
-	f.SetCellValue("main", "A"+strconv.Itoa(index_global), cou.number)
-	f.SetCellValue("main", "B"+strconv.Itoa(index_global), cou.url)
-	f.SetCellValue("main", "C"+strconv.Itoa(index_global), cou.datesP)
-	f.SetCellValue("main", "D"+strconv.Itoa(index_global), cou.kategory)
-	f.SetCellValue("main", "E"+strconv.Itoa(index_global), cou.applicant)
-	f.SetCellValue("main", "F"+strconv.Itoa(index_global), cou.defendant)
-	f.SetCellValue("main", "G"+strconv.Itoa(index_global), cou.judge)
-	f.SetCellValue("main", "H"+strconv.Itoa(index_global), cou.datesR)
-	f.SetCellValue("main", "I"+strconv.Itoa(index_global), cou.decision)
-	f.SetCellValue("main", "J"+strconv.Itoa(index_global), cou.datesZ)
-	f.SetCellValue("main", "K"+strconv.Itoa(index_global), cou.akts)
+	f.SetCellValue("main", cells(index_global, 1), cou.number)
+	f.SetCellValue("main", cells(index_global, 2), cou.url)
+	f.SetCellValue("main", cells(index_global, 3), cou.datesP)
+	f.SetCellValue("main", cells(index_global, 4), cou.kategory)
+	f.SetCellValue("main", cells(index_global, 5), cou.applicant)
+	f.SetCellValue("main", cells(index_global, 6), cou.judge)
+	f.SetCellValue("main", cells(index_global, 7), "")
+	f.SetCellValue("main", cells(index_global, 8), cou.defendant)
+	f.SetCellValue("main", cells(index_global, 9), "")
+	f.SetCellValue("main", cells(index_global, 10), "ИНН Московская Область "+strings.ReplaceAll(cou.defendant, "\"", ""))
+
+	f.SetCellValue("main", cells(index_global, 11), cou.akts)     // Судебные акты
+	f.SetCellValue("main", cells(index_global, 12), cou.datesR)   // Дата решения
+	f.SetCellValue("main", cells(index_global, 13), cou.datesZ)   // Дата вступления в законную силу
+	f.SetCellValue("main", cells(index_global, 14), cou.decision) // Решение
+
+	f.SetCellValue("main", cells(index_global, 15), "Мосгорсуд")
+	f.SetCellValue("main", cells(index_global, 16), "Да")
 	index_global++
 	//}
 }
