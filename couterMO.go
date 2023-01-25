@@ -149,7 +149,12 @@ func saveTypeOnXLSX(f *excelize.File, cou couterMO_data) {
 	f.SetCellValue("main", cells(index_global, 13), cou.datesZ)   // Дата вступления в законную силу
 	f.SetCellValue("main", cells(index_global, 14), cou.decision) // Решение
 
-	f.SetCellValue("main", cells(index_global, 15), "Мосгорсуд")
+	if strings.Contains(cou.kategory, "Дела об оплате труда") {
+		f.SetCellValue("main", cells(index_global, 15), "Мосгорсуд Не выплата зп")
+	} else {
+		f.SetCellValue("main", cells(index_global, 15), "Мосгорсуд восстановление на работе")
+	}
+
 	f.SetCellValue("main", cells(index_global, 16), "Да")
 	index_global++
 	//}
