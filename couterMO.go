@@ -46,7 +46,7 @@ func main() {
 	var tecal_page int // Текущий лист
 	var all_page int   // Всео листов
 	var err_page error
-	f, _ := excelize.OpenFile("links.xlsx")
+	f, _ := excelize.OpenFile("linksMO.xlsx")
 	rows, _ := f.GetRows("main")
 	f_excel := excelize.NewFile()
 	f_excel.NewSheet("main")
