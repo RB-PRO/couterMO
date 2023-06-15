@@ -1,8 +1,10 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"net/url"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -36,7 +38,8 @@ func main() {
 	dt := time.Now()
 	datedo := dt.Format("02.01.2006")
 	dateot := dt.AddDate(0, -1, 0).Format("02.01.2006")
-	//dateot = "15.11.2022"
+	dateot = "01.01.2023"
+
 	outputfilename := "Суды МО от " + dateot + " до " + datedo + ".xlsx"
 	//fmt.Println(dateot, datedo)
 	//var couters couterMO_data
@@ -46,14 +49,12 @@ func main() {
 	var tecal_page int // Текущий лист
 	var all_page int   // Всео листов
 	var err_page error
+	var CouterName string
 	f, _ := excelize.OpenFile("linksMO.xlsx")
 	rows, _ := f.GetRows("main")
 	f_excel := excelize.NewFile()
-	f_excel.NewSheet("main")
 	f_excel.DeleteSheet("Sheet1")
 	c := colly.NewCollector()
-
-	make_Title(f_excel)
 
 	c.OnHTML("td[valign=bottom]", func(element *colly.HTMLElement) {
 		if element.DOM.Find("a:last-child ").Text() == ">>" {
@@ -69,6 +70,7 @@ func main() {
 	})
 
 	c.OnHTML("#tablcont > tbody > tr", func(element *colly.HTMLElement) {
+
 		tecal_couter.number = TrimAll(element.DOM.Find("td:nth-child(1)").Text())
 		tecal_couter.datesP = TrimAll(element.DOM.Find("td:nth-child(2)").Text())
 		tecal_couter.kategory, tecal_couter.applicant, tecal_couter.defendant = kategory_applicant_defendant(TrimAll(element.DOM.Find("td:nth-child(3)").Text()))
@@ -81,17 +83,23 @@ func main() {
 		tecal_couter.url, _ = (element.DOM.Find("td:nth-child(1) > a[href]").Attr("href"))
 		tecal_couter.url = tecal_link + tecal_couter.url
 		if tecal_couter.number != "" {
-			saveTypeOnXLSX(f_excel, tecal_couter)
+			saveTypeOnXLSX(f_excel, tecal_couter, CouterName)
 			//couters = append(couters, tecal_couter)
 		}
 	})
 	//link, _ := f.GetCellValue("main", "A"+strconv.Itoa(53)) // !
 
 	for index_link := range rows {
+		CouterName = rows[index_link][0]
+
+		f_excel.NewSheet(CouterName)
+		make_Title(f_excel, CouterName)
+
+		fmt.Println(index_link, "из", len(rows))
 		//link, _ := f.GetCellValue("main", "A"+strconv.Itoa(index_link+1))
 		all_page = 1
 		for tecal_page = 1; tecal_page <= all_page; tecal_page++ {
-			link := rows[index_link][0] + postfix
+			link := CouterName + postfix
 			tecal_link = linkURLcouter(link) + postfix
 			link = strings.Replace(link, "DATEOT", dateot, 1)
 			link = strings.Replace(link, "DATEDO", datedo, 1)
@@ -99,11 +107,24 @@ func main() {
 
 			c.Visit(link)
 		}
+		//saveTypeOnXLSX(f_excel, couters)
+
 	}
-	//saveTypeOnXLSX(f_excel, couters)
 	if err := f_excel.SaveAs(outputfilename); err != nil {
 		fmt.Println(err)
 	}
+	// "Мягкий" выход из программы
+	fmt.Println("Press 'q' to quit")
+	scanner := bufio.NewScanner(os.Stdin)
+	for scanner.Scan() {
+		exit := scanner.Text()
+		if exit == "q" {
+			break
+		} else {
+			fmt.Println("Press 'q' to quit")
+		}
+	}
+
 }
 
 // Получить ячейку
@@ -113,49 +134,49 @@ func cells(y, x int) string {
 }
 
 // Создать шапку колонок
-func make_Title(f *excelize.File) {
-	f.SetCellValue("main", cells(1, 1), "Номер дела")
-	f.SetCellValue("main", cells(1, 2), "Ссылка на дело")
-	f.SetCellValue("main", cells(1, 3), "Дата поступления")
-	f.SetCellValue("main", cells(1, 4), "Категория")
-	f.SetCellValue("main", cells(1, 5), "Истец")
-	f.SetCellValue("main", cells(1, 6), "Судья Арбитражного суда")
-	f.SetCellValue("main", cells(1, 7), "Суд (наименование суда)")
-	f.SetCellValue("main", cells(1, 8), "Название компании")
-	f.SetCellValue("main", cells(1, 9), "ИНН")
-	f.SetCellValue("main", cells(1, 10), "link")
-	f.SetCellValue("main", cells(1, 11), "Судебные акты")
-	f.SetCellValue("main", cells(1, 12), "Дата решения")
-	f.SetCellValue("main", cells(1, 13), "Дата вступления в законную силу")
-	f.SetCellValue("main", cells(1, 14), "Решение")
-	f.SetCellValue("main", cells(1, 15), "Источник")
-	f.SetCellValue("main", cells(1, 16), "Доступен")
+func make_Title(f *excelize.File, sheet string) {
+	f.SetCellValue(sheet, cells(1, 1), "Номер дела")
+	f.SetCellValue(sheet, cells(1, 2), "Ссылка на дело")
+	f.SetCellValue(sheet, cells(1, 3), "Дата поступления")
+	f.SetCellValue(sheet, cells(1, 4), "Категория")
+	f.SetCellValue(sheet, cells(1, 5), "Истец")
+	f.SetCellValue(sheet, cells(1, 6), "Судья Арбитражного суда")
+	f.SetCellValue(sheet, cells(1, 7), "Суд (наименование суда)")
+	f.SetCellValue(sheet, cells(1, 8), "Название компании")
+	f.SetCellValue(sheet, cells(1, 9), "ИНН")
+	f.SetCellValue(sheet, cells(1, 10), "link")
+	f.SetCellValue(sheet, cells(1, 11), "Судебные акты")
+	f.SetCellValue(sheet, cells(1, 12), "Дата решения")
+	f.SetCellValue(sheet, cells(1, 13), "Дата вступления в законную силу")
+	f.SetCellValue(sheet, cells(1, 14), "Решение")
+	f.SetCellValue(sheet, cells(1, 15), "Источник")
+	f.SetCellValue(sheet, cells(1, 16), "Доступен")
 }
-func saveTypeOnXLSX(f *excelize.File, cou couterMO_data) {
+func saveTypeOnXLSX(f *excelize.File, cou couterMO_data, sheet string) {
 	//for index := range cou {
-	f.SetCellValue("main", cells(index_global, 1), cou.number)
-	f.SetCellValue("main", cells(index_global, 2), cou.url)
-	f.SetCellValue("main", cells(index_global, 3), cou.datesP)
-	f.SetCellValue("main", cells(index_global, 4), cou.kategory)
-	f.SetCellValue("main", cells(index_global, 5), cou.applicant)
-	f.SetCellValue("main", cells(index_global, 6), cou.judge)
-	f.SetCellValue("main", cells(index_global, 7), "")
-	f.SetCellValue("main", cells(index_global, 8), cou.defendant)
-	f.SetCellValue("main", cells(index_global, 9), "")
-	f.SetCellValue("main", cells(index_global, 10), "ИНН Московская Область "+strings.ReplaceAll(cou.defendant, "\"", ""))
+	f.SetCellValue(sheet, cells(index_global, 1), cou.number)
+	f.SetCellValue(sheet, cells(index_global, 2), cou.url)
+	f.SetCellValue(sheet, cells(index_global, 3), cou.datesP)
+	f.SetCellValue(sheet, cells(index_global, 4), cou.kategory)
+	f.SetCellValue(sheet, cells(index_global, 5), cou.applicant)
+	f.SetCellValue(sheet, cells(index_global, 6), cou.judge)
+	f.SetCellValue(sheet, cells(index_global, 7), "")
+	f.SetCellValue(sheet, cells(index_global, 8), cou.defendant)
+	f.SetCellValue(sheet, cells(index_global, 9), "")
+	f.SetCellValue(sheet, cells(index_global, 10), "ИНН Московская Область "+strings.ReplaceAll(cou.defendant, "\"", ""))
 
-	f.SetCellValue("main", cells(index_global, 11), cou.akts)     // Судебные акты
-	f.SetCellValue("main", cells(index_global, 12), cou.datesR)   // Дата решения
-	f.SetCellValue("main", cells(index_global, 13), cou.datesZ)   // Дата вступления в законную силу
-	f.SetCellValue("main", cells(index_global, 14), cou.decision) // Решение
+	f.SetCellValue(sheet, cells(index_global, 11), cou.akts)     // Судебные акты
+	f.SetCellValue(sheet, cells(index_global, 12), cou.datesR)   // Дата решения
+	f.SetCellValue(sheet, cells(index_global, 13), cou.datesZ)   // Дата вступления в законную силу
+	f.SetCellValue(sheet, cells(index_global, 14), cou.decision) // Решение
 
-	if strings.Contains(cou.kategory, "Дела об оплате труда") {
-		f.SetCellValue("main", cells(index_global, 15), "Мосгорсуд Не выплата зп")
-	} else {
-		f.SetCellValue("main", cells(index_global, 15), "Мосгорсуд восстановление на работе")
-	}
+	// if strings.Contains(cou.kategory, "Дела об оплате труда") {
+	// 	f.SetCellValue(sheet, cells(index_global, 15), "Мосгорсуд Не выплата зп")
+	// } else {
+	// 	f.SetCellValue(sheet, cells(index_global, 15), "Мосгорсуд восстановление на работе")
+	// }
 
-	f.SetCellValue("main", cells(index_global, 16), "Да")
+	f.SetCellValue(sheet, cells(index_global, 16), "Да")
 	index_global++
 	//}
 }
